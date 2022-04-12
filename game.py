@@ -57,7 +57,7 @@ class TicTacToe():
         # Off Diag
         win = True
         for i in range(3):
-            elem = int(self.board[2-i, 2-i])
+            elem = int(self.board[2-i, i])
             if elem != self.player_now:
                 win = False
                 break
