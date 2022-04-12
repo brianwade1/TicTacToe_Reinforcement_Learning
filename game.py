@@ -11,7 +11,7 @@ class TicTacToe():
     def make_mark(self, player):
         bad_entry = True
         while bad_entry:
-            user_entry = input(f'Player {self.players[self.player_now]} please make a move (format = #,#): ')
+            user_entry = input(f'Player {self.players[self.player_now]} please make a move (format = row #, col #): ')
             try:
                 row, col = list(map(int, user_entry.split(',')))
                 bad_entry = False
