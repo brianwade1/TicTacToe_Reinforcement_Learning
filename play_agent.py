@@ -1,7 +1,6 @@
-# Other scripts
-from game import TicTacToe
+# Other scripts in repo
+from util.game import TicTacToe
 from Q_learning_agent import Q_Learning_Agent
-from settings import *
 
 def main():
     game = TicTacToe()

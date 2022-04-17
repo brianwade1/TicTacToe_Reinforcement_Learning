@@ -8,3 +8,6 @@ EPSILON_MIN = 0.05
 # Game Settings
 WIN_REWARD = 3
 TIE_REWARD = 1
+
+# OpenAI Gym / Stable Baselines Agent Settings
+BAD_ACTION_REWARD = -100

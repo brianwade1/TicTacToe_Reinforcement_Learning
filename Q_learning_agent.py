@@ -2,9 +2,9 @@
 import random, os, pickle, time
 #Anaconda Libraries
 import numpy as np
-# Other scripts
-from game import TicTacToe
-from settings import *
+# Other scripts in repo
+from util.game import TicTacToe
+from util.settings import *
 
 agent_folder = 'agents'
 
