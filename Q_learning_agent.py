@@ -231,7 +231,7 @@ class Q_Learning_Agent():
 if __name__ == '__main__':
     game = TicTacToe()
     agent = Q_Learning_Agent(game, side = 1, playing_human = False)
-    agent.do_training(games_to_play = 500000)
+    agent.do_training(games_to_play = TRAINING_GAMES)
     
 
         

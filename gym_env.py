@@ -4,14 +4,15 @@ import math
 import gym
 import numpy as np
 # Other scripts in repo
-from settings import *
-from game import TicTacToe 
+from util.settings import *
+from util.game import TicTacToe 
 
 class TicTacToc_Env(gym.Env):
     """Custom Environment using the gym interface for the Tic-Tac-Toe game"""
     metadata = {'render_modes': ['human']}
 
     def __init__(self, game, playing_human = False):
+
         # admin settings
         self.game = game
         self.win_reward = WIN_REWARD
@@ -19,15 +20,15 @@ class TicTacToc_Env(gym.Env):
         self.playing_human = playing_human
 
         # Gym settings
-        size_of_board = len(self.game.board[0]) * len(self.game.board[0])
-        values_on_board = list([3]* size_of_board)
-        self.action_space = gym.spaces.Discrete(size_of_board)
+        self.size_of_board = len(self.game.board[0]) * len(self.game.board[0])
+        values_on_board = list([3]* self.size_of_board)
+        self.action_space = gym.spaces.Discrete(self.size_of_board)
         self.observation_space = gym.spaces.MultiDiscrete([2, *values_on_board])
 
-    def _get_available_actions(self, board):
+    def get_available_actions(self, board) ->list:
         i, j = np.where(board == 0)
         avail_slots = [i * 3 + j for i, j in list(zip(i,j))]
-        self.avail_actions = avail_slots
+        return avail_slots
 
     def _change_actionNum_to_boardPos(self, actionNum):
         i = math.floor(actionNum/3)
@@ -40,10 +41,10 @@ class TicTacToc_Env(gym.Env):
         return next_board
 
     def _make_state(self):
-        state = [self.game.player_now]
+        state = [self.game.player_now - 1]
         for element in self.game.board.flatten():
             state.append(int(element))
-        return state
+        return np.array(state)
 
     def _get_reward(self):
         reward = 0
@@ -57,9 +58,9 @@ class TicTacToc_Env(gym.Env):
 
     def step(self, action):
         # Get next state based on action
-        self._get_available_actions(self.game.board)
+        avail_actions = self.get_available_actions(self.game.board)
         # If action is allowable, do action, and check for win/tie
-        if action in self.avail_actions:
+        if action in avail_actions:
             action_pos = self._change_actionNum_to_boardPos(action)
             self.game.board = self._get_next_board(action_pos)
             reward, win, tie = self._get_reward()
@@ -76,12 +77,29 @@ class TicTacToc_Env(gym.Env):
             reward = BAD_ACTION_REWARD
             done = False
         info = {}
-        return state, reward, done, info
+
+        #obs = {
+        #    "action_mask": self.action_mask,
+        #    "avail_actions": self.action_assignments,
+        #    "true_state": state
+        #}
+        obs = state
+
+        self.reward = reward
+        self.done = done
+
+        return obs, reward, done, info
 
     def reset(self):
         self.game.board = np.zeros((3,3))
         state = self._make_state()
-        return state
+        #obs = {
+        #    "action_mask": self.action_mask,
+        #    "avail_actions": self.action_assignments,
+        #    "true_state": state
+        #}
+        obs = state
+        return obs
 
 if __name__ == '__main__':
     game = TicTacToe()
