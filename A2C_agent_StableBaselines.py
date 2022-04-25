@@ -1,5 +1,5 @@
 # Standard libraries
-import os
+import os, errno
 # Anaconda libraries
 import gym
 import numpy as np
@@ -22,30 +22,44 @@ agent_folder = 'agents'
 agent_file_name = os.path.join(agent_folder, 'AC2_Agent_TicTacToe')
 
 # Make environment
-def make_env(playing_human = False):
+def make_env(opponent) -> gym.Env:
     game = TicTacToe()
-    env = TicTacToc_Env(game, playing_human)
-    env = ActionMasker(env, mask_fn)  # Wrap to enable masking
+    env = TicTacToc_Env(game, opponent)
+    #env = ActionMasker(env, mask_fn)  # Wrap to enable masking
+    env = ActionMasker(env, env.mask_fn)  # Wrap to enable masking
     #vec_env = make_vec_env(env)
     #env = DummyVecEnv([lambda: TicTacToc_Env(game, playing_human = False)])
     check_env(env)
     return env
 
-
-def mask_fn(env) -> np.ndarray:
-    avail_actions = env.get_available_actions(env.game.board)
-    valid_action_mask = [x in avail_actions for x in range(env.size_of_board)]
-    return valid_action_mask
-
+#def mask_fn(env: gym.Env) -> np.ndarray:
+#    return np.asarray(env.mask_fn())
 
 # Make and train A2C agent
-def train_new_agent(env):
-    model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1)
+def train_new_agent(env, model, agent_file_name) -> None:
     model.learn(TRAINING_GAMES)
-    return model
+    model.save(agent_file_name)
+
+def progressive_training(env, agent_file_name, evolutions) -> None:
+    if os.path.exists(agent_file_name):
+        agent = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1)
+        agent.set_parameters(agent_file_name, env = env)
+    else:
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), agent_file_name)
+    
+    for evolution in range(evolutions):
+        opponent = MaskablePPO.set_parameters(agent_file_name, env=env)
+        env_AI = make_env(opponent)
+        agent.set_env(env_AI)
+        agent.learn(TRAINING_GAMES)
+        agent.save(agent_file_name)
+
+        print(f'evolution number {evolution} complete')
 
 
 if __name__ == '__main__':
-    env = make_env()
-    agent = train_new_agent(env)
-    agent.save(agent_file_name)
+    env = make_env(opponent = 'random')
+    agent = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1)
+    train_new_agent(env, agent, agent_file_name)
+    progressive_training(env, agent_file_name, evolutions = 10)
+    
